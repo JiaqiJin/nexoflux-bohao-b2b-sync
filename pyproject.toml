@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nexoflux-bohao-sync"
-version = "0.1.2"
+version = "0.1.3"
 description = "Bridge independiente entre Bohao local y Nexoflux B2B"
 requires-python = ">=3.12"
 dependencies = ["fastapi==0.142.2", "uvicorn==0.54.0", "httpx==0.28.1", "PyMySQL==1.2.3", "pywin32==312; sys_platform == 'win32'"]
