@@ -15,7 +15,9 @@ function Get-AppProcess {
 
 function Start-Console {
     if (Test-Path -LiteralPath $exe) {
-        Start-Process -FilePath $exe -ArgumentList "--data-dir `"$DataDir`" --open" -WorkingDirectory $InstallDir
+        $arguments = "--data-dir `"$DataDir`""
+        if ($OpenBrowser) { $arguments += ' --open' }
+        Start-Process -FilePath $exe -ArgumentList $arguments -WorkingDirectory $InstallDir
     }
 }
 
@@ -35,7 +37,10 @@ function Invoke-UpdateCheck {
         if ($asset -and [version]$latest -gt [version]$current) {
             if ($wasRunning) {
                 $status = Invoke-RestMethod -Uri 'http://127.0.0.1:8765/api/status' -TimeoutSec 5
-                if ($status.running) { return }
+                if ($status.running) {
+                    if ($OpenBrowser) { Start-Process 'http://127.0.0.1:8765' }
+                    return
+                }
                 Invoke-RestMethod -Method Post -Uri 'http://127.0.0.1:8765/api/shutdown-for-update' -Headers @{ 'x-bridge-csrf' = $status.csrf } -TimeoutSec 10 | Out-Null
                 try { Wait-Process -Id $process.Id -Timeout 45 -ErrorAction Stop } catch { }
                 if (Get-AppProcess) { return }

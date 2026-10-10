@@ -18,6 +18,7 @@ if not "%INSTALL_EXIT_CODE%"=="0" (
     exit /b %INSTALL_EXIT_CODE%
 )
 
-echo Instalacion terminada. La consola se abrira en el navegador.
+echo Instalacion terminada. El servidor se ejecutara en segundo plano al iniciar sesion.
+echo Para abrir la consola, haz clic en el acceso directo del escritorio.
 pause
 exit /b 0
