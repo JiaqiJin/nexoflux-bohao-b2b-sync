@@ -41,7 +41,7 @@ jobs:
           Copy-Item -LiteralPath 'dist/NexofluxBohaoSync' -Destination $package -Recurse
           $version = $env:RELEASE_VERSION.TrimStart('v')
           Set-Content -LiteralPath (Join-Path $package 'NexofluxBohaoSync/version.txt') -Value $version -NoNewline
-          Copy-Item -LiteralPath 'install-client.bat', 'install-client.ps1', 'update-and-start.ps1' -Destination $package
+          Copy-Item -LiteralPath 'install-client.bat', 'install-client.ps1', 'stop-client.bat', 'stop-client.ps1', 'update-and-start.ps1' -Destination $package
           Compress-Archive -Path (Join-Path $package '*') -DestinationPath (Join-Path $env:RUNNER_TEMP 'NexofluxBohaoSync-win-x64.zip') -CompressionLevel Optimal
       - name: Publish release
         env:
