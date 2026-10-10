@@ -1,0 +1,52 @@
+name: Windows release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build Windows application
+        shell: pwsh
+        env:
+          RELEASE_VERSION: ${{ github.ref_name }}
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install '.[dev]'
+          python -m pytest -q
+          $version = 'v' + $env:RELEASE_VERSION.TrimStart('v')
+          foreach ($file in @('bridge/static/index.html', 'bridge/static/app.js')) {
+            $content = Get-Content -LiteralPath $file -Raw
+            Set-Content -LiteralPath $file -Value $content.Replace('v0.1.0', $version) -NoNewline
+          }
+          ./build.ps1
+      - name: Package release
+        shell: pwsh
+        env:
+          RELEASE_VERSION: ${{ github.ref_name }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $package = Join-Path $env:RUNNER_TEMP 'release-package'
+          New-Item -ItemType Directory -Path $package -Force | Out-Null
+          Copy-Item -LiteralPath 'dist/NexofluxBohaoSync' -Destination $package -Recurse
+          $version = $env:RELEASE_VERSION.TrimStart('v')
+          Set-Content -LiteralPath (Join-Path $package 'NexofluxBohaoSync/version.txt') -Value $version -NoNewline
+          Copy-Item -LiteralPath 'install-client.ps1', 'update-and-start.ps1' -Destination $package
+          Compress-Archive -Path (Join-Path $package '*') -DestinationPath (Join-Path $env:RUNNER_TEMP 'NexofluxBohaoSync-win-x64.zip') -CompressionLevel Optimal
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ github.ref_name }}
+        shell: pwsh
+        run: |
+          gh release create $env:RELEASE_VERSION "$env:RUNNER_TEMP/NexofluxBohaoSync-win-x64.zip" --title "Nexoflux Bohao Sync $env:RELEASE_VERSION" --generate-notes
